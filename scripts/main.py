@@ -85,7 +85,6 @@ def on_connect(mqtt_client, userdata, flags, rc, properties=None): # 'properties
     if rc == 0:
         print("Erfolgreich mit MQTT Broker verbunden!")
         mqtt_client.subscribe(MQTT_TOPIC_GARAGE_CONTROL)
-        mqtt_client.subscribe(MQTT_TOPIC_GARAGE_STATUS)
         print(f"Abonniert auf Topic: {MQTT_TOPIC_GARAGE_CONTROL}")
         print(f"Abonniert auf Topic: {MQTT_TOPIC_GARAGE_STATUS}")
     else:
@@ -163,6 +162,7 @@ def on_message(mqtt_client, userdata, msg):
         try:
             data = json.loads(payload_str) # Versuche, den Payload als JSON zu parsen
             if isinstance(data, dict) and data.get("action") == "open":
+                print("Öffnungsanfrage empfangen (JSON).")
                 open_garage_procedure()
             else:
                 print(f"Unbekannte JSON-Aktion oder Format: {data}")
