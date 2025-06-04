@@ -4,7 +4,7 @@ from gpiozero import LED, MotionSensor, DistanceSensor
 import json # Importiere das json Modul
 
 # ===== MQTT Konfiguration =====
-MQTT_BROKER = "localhost"  # BITTE ANPASSEN: Adresse deines MQTT Brokers
+MQTT_BROKER = "10.0.0.1"
 MQTT_PORT = 1883
 MQTT_TOPIC_GARAGE_CONTROL = "barrier"
 MQTT_TOPIC_GARAGE_STATUS = "garage"
@@ -18,7 +18,12 @@ ULTRASONIC_TRIGGER_PIN = 23  # Trigger-Pin für Ultraschallsensor
 ULTRASONIC_ECHO_PIN = 24     # Echo-Pin für Ultraschallsensor
 
 # gpiozero Objekte initialisieren
-motion_sensor = MotionSensor(MOTION_SENSOR_PIN)
+motion_sensor = MotionSensor(
+    MOTION_SENSOR_PIN,
+    queue_len=10,      # Anzahl der zu mittelnden Messwerte (Standard ist 1)
+    sample_rate=10,    # Abtastrate in Hz (Standard ist 5)
+    threshold=0.8      # Schwellenwert (z.B. 0.8 bedeutet, 80% der queue_len müssen aktiv sein)
+)
 green_led = LED(GREEN_LED_PIN)
 red_led = LED(RED_LED_PIN)
 distance_sensor = DistanceSensor(
