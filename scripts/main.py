@@ -1,12 +1,13 @@
 import time
 import paho.mqtt.client as mqtt
 from gpiozero import LED, MotionSensor, DistanceSensor
+import json # Importiere das json Modul
 
 # ===== MQTT Konfiguration =====
 MQTT_BROKER = "localhost"  # BITTE ANPASSEN: Adresse deines MQTT Brokers
 MQTT_PORT = 1883
-MQTT_TOPIC_GARAGE_CONTROL = "garage/control"
-MQTT_TOPIC_GARAGE_STATUS = "garage/status" # Zum Senden des Status
+MQTT_TOPIC_GARAGE_CONTROL = "barrier"
+MQTT_TOPIC_GARAGE_STATUS = "garage"
 
 # ===== Konfiguration =====
 # GPIO Pins
@@ -84,7 +85,9 @@ def on_connect(mqtt_client, userdata, flags, rc, properties=None): # 'properties
     if rc == 0:
         print("Erfolgreich mit MQTT Broker verbunden!")
         mqtt_client.subscribe(MQTT_TOPIC_GARAGE_CONTROL)
+        mqtt_client.subscribe(MQTT_TOPIC_GARAGE_STATUS)
         print(f"Abonniert auf Topic: {MQTT_TOPIC_GARAGE_CONTROL}")
+        print(f"Abonniert auf Topic: {MQTT_TOPIC_GARAGE_STATUS}")
     else:
         print(f"Verbindung zum MQTT Broker fehlgeschlagen, Rückgabecode: {rc}")
 
@@ -150,21 +153,34 @@ def open_garage_procedure():
         client.publish(MQTT_TOPIC_GARAGE_STATUS, "error_occupied")
     elif motion_sensor.is_active:
         print("Bewegung erkannt (vor Öffnungsversuch). Öffnen aus Sicherheitsgründen nicht möglich.")
-        client.publish(MQTT_TOPIC_GARAGE_STATUS, "error_motion_detected_before_open")
 
 def on_message(mqtt_client, userdata, msg):
     global garage_occupied # Zugriff auf die globale Variable
-    payload = msg.payload.decode()
-    print(f"Nachricht empfangen auf Topic '{msg.topic}': {payload}")
+    payload_str = msg.payload.decode()
+    print(f"Nachricht empfangen auf Topic '{msg.topic}': {payload_str}")
     
     if msg.topic == MQTT_TOPIC_GARAGE_CONTROL:
-        if payload == "OPEN":
-            open_garage_procedure()
-        elif payload == "STATUS_REQUEST":
-            current_status_str = "occupied" if garage_occupied else "free"
-            if is_opening_garage:
-                current_status_str = "opening"
+        try:
+            data = json.loads(payload_str) # Versuche, den Payload als JSON zu parsen
+            if isinstance(data, dict) and data.get("action") == "open":
+                open_garage_procedure()
+            else:
+                print(f"Unbekannte JSON-Aktion oder Format: {data}")
+        except json.JSONDecodeError:
+            print(f"Fehler beim Parsen der JSON-Nachricht: {payload_str}")
+            if payload_str == "STATUS_REQUEST": # Behalte die alte STATUS_REQUEST Logik bei, falls sie nicht JSON ist
+                current_status_str = "occupied" if garage_occupied else "free"
+                if is_opening_garage:
+                    current_status_str = "opening"
+                if client and client.is_connected():
+                    client.publish(MQTT_TOPIC_GARAGE_STATUS, current_status_str)
+    elif msg.topic == MQTT_TOPIC_GARAGE_CONTROL and payload_str == "STATUS_REQUEST":
+        current_status_str = "occupied" if garage_occupied else "free"
+        if is_opening_garage:
+            current_status_str = "opening"
+        if client and client.is_connected():
             client.publish(MQTT_TOPIC_GARAGE_STATUS, current_status_str)
+
 
 # ===== Hauptprogramm =====
 def main():
@@ -208,16 +224,6 @@ def main():
                     update_leds(garage_occupied)
                     if client.is_connected():
                         client.publish(MQTT_TOPIC_GARAGE_STATUS, "occupied" if garage_occupied else "free", retain=True)
-                
-                # Allgemeine Bewegungserkennung (außerhalb des Öffnens)
-                # Hier könnte bei Bedarf eine spezifische Logik implementiert werden,
-                # z.B. eine MQTT-Nachricht senden oder eine separate Warn-LED aktivieren.
-                # Die ursprüngliche Blinklogik bei Bewegung wurde entfernt, um Konflikte
-                # mit der Lichtschrankenfunktion und der Belegtanzeige zu vermeiden.
-                # if motion_sensor.is_active:
-                #    print("Allgemeine Bewegung erkannt (Garage öffnet nicht).")
-                #    if client.is_connected():
-                #        client.publish("garage/general_motion", "detected")
 
             time.sleep(0.5) # Hauptschleifen-Intervall
 
@@ -228,7 +234,6 @@ def main():
             client.loop_stop()
             client.disconnect()
             print("MQTT-Verbindung getrennt.")
-        # gpiozero räumt GPIOs automatisch beim Beenden auf
         green_led.off()
         red_led.off()
         print("LEDs ausgeschaltet. Programm beendet.")
