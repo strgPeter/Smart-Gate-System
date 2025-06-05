@@ -7,7 +7,7 @@ import paho.mqtt.client as mqtt
 
 
 # Setup MQTT client
-MQTT_BROKER = "localhost"  # oder IP-Adresse des Brokers
+MQTT_BROKER = "localhost"  
 MQTT_TOPIC = "barrier"
 client = mqtt.Client()
 client.connect(MQTT_BROKER)
