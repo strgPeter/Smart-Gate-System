@@ -18,7 +18,7 @@ colsPins = [10, 22, 27, 17]
 CORRECT_PIN = "1234"
 
 # Setup MQTT client
-MQTT_BROKER = "localhost"  # oder IP-Adresse des Brokers
+MQTT_BROKER = "localhost"  
 MQTT_TOPIC = "barrier"
 client = mqtt.Client()
 client.connect(MQTT_BROKER)
