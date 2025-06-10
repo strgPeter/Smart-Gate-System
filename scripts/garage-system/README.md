@@ -83,7 +83,7 @@ Key parameters can be configured at the beginning of the `garage.py` script:
 3.  Update the configuration variables at the top of the script (especially MQTT broker address and GPIO pins) if necessary.
 4.  Execute the script from a terminal on the Raspberry Pi:
     ```sh
-    python garage.py
+    python3 garage.py
     ```
     The script requires appropriate permissions to access GPIO pins.
 
