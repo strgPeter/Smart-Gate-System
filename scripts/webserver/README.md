@@ -4,7 +4,7 @@ This guide explains how to set up and run the `webserver.py` Flask application f
 
 ## What does `webserver.py` do?
 
-The `webserver.py` script provides a web dashboard for monitoring and controlling the Smart Gate System. It connects to an MQTT broker, receives real-time status updates from the garage and barrier, and allows users to open or close the barrier gate via a web interface. The dashboard displays the current state of the garage and barrier, and shows a live log of MQTT messages.
+The `webserver.py` script provides a web dashboard for monitoring and controlling the Smart Gate System. It connects to an MQTT broker, receives real-time status updates from the garage and barrier as well as the license plate recognition and allows users to open or close the barrier gate via a web interface. The dashboard displays the current state of the garage and barrier, and shows a live log of MQTT messages.
 
 ## Setup Instructions
 
