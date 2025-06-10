@@ -14,8 +14,8 @@ state = {
 
 MQTT_BROKER = "10.0.0.1"
 
-#MQTT_TOPICS = ["garage", "barrier", "plate"]
-MQTT_TOPICS = ["#"]
+#MQTT_TOPICS = ["garage", "barrier", "plate"] # for specific topics
+MQTT_TOPICS = ["#"] # subscribe to all topics (for testing purposes)
 
 mqtt_client = mqtt.Client()
 
@@ -30,7 +30,7 @@ def on_message(client, userdata, msg):
     if len(log) > 100:
         log.pop()
 
-    # Status speichern für die Ampeln
+    # safe state for traffic light
     if msg.topic == "garage":
         state["garage"] = payload
     elif msg.topic == "barrier":
@@ -48,8 +48,8 @@ def mqtt_thread():
     mqtt_client.on_message = on_message
     mqtt_client.connect(MQTT_BROKER)
     for topic in MQTT_TOPICS:
-#        mqtt_client.subscribe(topic)
-        mqtt_client.subscribe("#")
+#        mqtt_client.subscribe(topic) # subscribe to specific topics
+        mqtt_client.subscribe("#") # subscribe to all topics (for testing purposes)
     mqtt_client.loop_forever()
 
 @app.route("/", methods=["GET", "POST"])
@@ -62,7 +62,7 @@ def index():
             mqtt_client.publish("barrier", '{"action":"close"}')
         return redirect("/")
 
-    # Farbenlogik für Ampeln
+    # traffic light color logic
     garage_color = "gray"
     if state["garage"] == "occupied" or state["garage"] == "error_occupied":
         garage_color = "red"
