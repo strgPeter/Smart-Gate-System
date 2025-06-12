@@ -46,7 +46,6 @@ An **MQTT Server** acts as the central message broker, enabling decoupled commun
 - **User Interface:** WebUI for monitoring and potentially some control.
 
 **(Refer to `system_diagram.png` for a visual representation of the architecture and data flow.)**
-_(You would include the provided diagram image in your project repository with this name)_
 
 ## 4. Usage
 
