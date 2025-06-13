@@ -45,8 +45,6 @@ An **MQTT Server** acts as the central message broker, enabling decoupled commun
 - **Processing Units:** Raspberry Pi 4, Raspberry Pi Zero W, Raspberry Pi 3 Model B.
 - **User Interface:** WebUI for monitoring and potentially some control.
 
-**(Refer to `system_diagram.png` for a visual representation of the architecture and data flow.)**
-
 ## 4. Usage
 
 1.  **Vehicle Approach:** As a vehicle approaches, the LPR system attempts to recognize the license plate.
